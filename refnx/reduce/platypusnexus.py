@@ -383,6 +383,62 @@ class PlatypusCatalogue(Catalogue):
         d["sth"] = h5d["entry1/sample/sth"][:]
         d["mode"] = h5d["entry1/instrument/parameters/mode"][0].decode()
 
+        
+        # Polarised neutron params + sample environment 
+        if d["mode"] in ["POL", "POLANAL"]: #TODO: Need to check if there are differences in datafiles between mode POL and POLANAL. I suspect POL doesn't have analyser attributes
+            d["pol_flip_freq"] = h5d["entry1/instrument/polarizer_flipper/flip_frequency"][0]
+            d["pol_flip_current"] = h5d["entry1/instrument/polarizer_flipper/flip_current"][0]
+            d["pol_flip_voltage"] = h5d["entry1/instrument/polarizer_flipper/flip_voltage"][0]
+            d["pol_flip_status"] = h5d["entry1/instrument/polarizer_flipper/flip_on"][0]
+            d["pol_guide_current"] = h5d["entry1/instrument/polarizer_flipper/guide_current"][0]
+
+            d["anal_flip_freq"] = h5d["entry1/instrument/analyzer_flipper/flip_frequency"][0]
+            d["anal_flip_current"] = h5d["entry1/instrument/analyzer_flipper/flip_current"][0]
+            d["anal_flip_voltage"] = h5d["entry1/instrument/analyzer_flipper/flip_voltage"][0]
+            d["anal_flip_status"] = h5d["entry1/instrument/analyzer_flipper/flip_on"][0]
+            d["anal_guide_current"] = h5d["entry1/instrument/analyzer_flipper/guide_current"][0]
+
+            d["analyzer_base"] = h5d["entry1/instrument/polarizer/anal_base"][0]
+            d["analyser_dist"] = h5d["entry1/instrument/polarizer/anal_distance"][0]
+            d["rotation"] = h5d["entry1/instrument/polarizer/rotation"][0]
+            d["z_trans"] = h5d["entry1/instrument/polarizer/z_translation"][0]
+        
+            try: # Try adding temperature sensor values to dict
+                d["temp_sensorA"] = h5d["entry1/sample/tc1/sensor/sensorValueA"][0]
+                d["temp_sensorB"] = h5d["entry1/sample/tc1/sensor/sensorValueB"][0]
+                d["temp_sensorC"] = h5d["entry1/sample/tc1/sensor/sensorValueC"][0]
+                d["temp_sensorD"] = h5d["entry1/sample/tc1/sensor/sensorValueD"][0]
+                d["temp_setpt1"] = h5d["entry1/sample/tc1/sensor/setpoint1"][0]
+                d["temp_setpt2"] = h5d["entry1/sample/tc1/sensor/setpoint2"][0]
+            except KeyError: # Temperature sensor not used in measurement - set to None
+                
+                d["temp_sensorA"] = None
+                d["temp_sensorB"] = None
+                d["temp_sensorC"] = None
+                d["temp_sensorD"] = None
+                d["temp_setpt1"] = None 
+                d["temp_setpt2"] = None
+            
+            try: # Try adding voltage supply to dict
+                d["pow_supply_volts"] = h5d["entry1/sample/power_supply/voltage"][0]
+                d["pow_supply_current"] = h5d["entry1/sample/power_supply/amps"][0]
+                d["pow_supply_relay"] = h5d["entry1/sample/power_supply/relay"][0]
+            except KeyError: #Voltage supply not used in measurement
+                d["pow_supply_volts"] = None
+                d["pow_supply_current"] = None
+                d["pow_supply_relay"] = None
+
+            try: #Try adding magnetic field sensor to dict
+                d["magnet_current_set"] = h5d["entry1/sample/ma1/sensor/desired_current"][0]
+                d["magnet_set_field"] = h5d["entry1/sample/ma1/sensor/desired_field"][0]
+                d["magnet_measured_field"] = h5d["entry1/sample/ma1/sensor/measured_field"][0]
+                d["magnet_output_current"] = h5d["entry1/sample/ma1/sensor/nominal_outp_current"][0]
+            except KeyError: #Magnetic field sensor not used in measurement - set to None
+                d["magnet_current_set"] = None
+                d["magnet_set_field"] = None
+                d["magnet_measured_field"] = None
+                d["magnet_output_current"] = None 
+
         master, slave, frequency, phase = self._chopper_values(h5d)
         d["master"] = master
         d["slave"] = slave
