@@ -10,14 +10,14 @@ from itertools import islice
 XRR_BEAMWIDTH_SD = 0.019449
 
 
-def reduce_xrdml(f, bkg=None, scale=None, sample_length=None):
+def reduce_xray(f, bkg=None, scale=None, sample_length=None):
     """
-    Reduces a Panalytical XRDML file
+    Reduces a X-ray file. Current supported file formats are PANAlytical XRDML and Rigaku RAS filetypes.
 
     Parameters
     ----------
     f: file-like object or string
-        The specular reflectivity (XRDML) file of interest
+        The specular reflectivity (XRDML or RAS) file of interest
     bkg: list
         A list of file-like objects or strings that contain background
         measurements. The background is assumed to have the same number of
@@ -102,44 +102,6 @@ def reduce_xrdml(f, bkg=None, scale=None, sample_length=None):
 
     return d
 
-def reduce_ras_file(f):
-    """
-    Parses an XRML file
-
-    Parameters
-    ----------
-    f: file-like object or string
-
-    Returns
-    -------
-    d: dict
-        A dictionary containing the XRDML file information.  The following keys
-        are used:
-
-        'intensities' - np.ndarray
-            Intensities
-        'twotheta' - np.ndarray
-            Two theta values
-        'omega' - np.ndarray
-            Omega values
-        'count_time' - float
-            How long each point was counted for
-        'wavelength' - float
-            Wavelength of X-ray radiation
-    """
-    
-
-    xrdfile = RasFile(f)
-
-
-
-    tree = et.parse(f)
-    root = tree.getroot()
-    ns = {"xrdml": "http://www.xrdml.com/XRDMeasurement/1.0"}
-
-
-    return d
-
 def parse_ras_file(f):
     re_measstart = re.compile(r"^\*RAS_DATA_START")
     re_measend = re.compile(r"^\*RAS_DATA_END")
@@ -158,10 +120,8 @@ def parse_ras_file(f):
     re_measstep = re.compile(r"^\*MEAS_SCAN_STEP ")
     re_wavelength = re.compile(r"^\*HW_XG_WAVE_LENGTH_ALPHA1")
 
-    fpath = r"C:\Users\oliver\OneDrive - UNSW\Experiments 2020\Rigaku SMartlab\P0142OP_BFO-LSMO_STO_001_12k_0-2k_for TB\P0142OP_XRR.ras"
-
     keys, position = {}, {}                    
-    with open(fpath, mode='rb') as fid:
+    with open(f, mode='rb') as fid:
         while True:
             t = fid.tell()
             line = fid.readline()
