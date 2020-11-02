@@ -16,7 +16,7 @@ from refnx.reduce.platypusnexus import (
     ReductionOptions,
 )
 from refnx.reduce.batchreduction import BatchReducer
-from refnx.reduce.xray import reduce_xrdml
+from refnx.reduce.xray import reduce_xray
 from refnx._lib._testutils import PytestTester
 from refnx.reduce._app import main, gui
 
