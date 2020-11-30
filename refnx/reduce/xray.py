@@ -10,7 +10,7 @@ from itertools import islice
 XRR_BEAMWIDTH_SD = 0.019449
 
 
-def reduce_xray(f, bkg=None, scale=None, sample_length=None):
+def reduce_xray(f, bkg=None, scale=None, sample_length=None, throwaway=0):
     """
     Reduces a X-ray file. Current supported file formats are
     PANAlytical XRDML and Rigaku RAS filetypes.
@@ -42,8 +42,9 @@ def reduce_xray(f, bkg=None, scale=None, sample_length=None):
     elif f.endswith('.ras'):
         spec = parse_ras_file(f)
 
-    reflectivity = spec["intensities"] / spec["count_time"]
-    reflectivity_s = np.sqrt(spec["intensities"]) / spec["count_time"]
+    reflectivity = spec["intensities"][throwaway:] / spec["count_time"]
+    reflectivity_s = np.sqrt(spec["intensities"][throwaway:]) / spec["count_time"]
+
 
     # do the background subtraction
     if bkg is not None:
@@ -65,14 +66,14 @@ def reduce_xray(f, bkg=None, scale=None, sample_length=None):
         total_bkgd_s = np.sqrt(1 / denominator)
 
         reflectivity, reflectivity_s = EP.EPsub(
-            reflectivity, reflectivity_s, total_bkgd, total_bkgd_s
+            reflectivity[throwaway:], reflectivity_s[throwaway:], total_bkgd, total_bkgd_s
         )
 
     # work out the Q values
     qx, qy, qz = general.q2(
-        spec["omega"],
-        spec["twotheta"],
-        np.zeros_like(spec["omega"]),
+        spec["omega"][throwaway:],
+        spec["twotheta"][throwaway:],
+        np.zeros_like(spec["omega"][throwaway:]),
         spec["wavelength"],
     )
 
@@ -81,7 +82,7 @@ def reduce_xray(f, bkg=None, scale=None, sample_length=None):
         footprint_correction = general.beamfrac(
             np.array([XRR_BEAMWIDTH_SD]) * 2.35,
             np.array([sample_length]),
-            spec["omega"],
+            spec["omega"][throwaway:],
         )
         reflectivity /= footprint_correction
         reflectivity_s /= footprint_correction
@@ -92,7 +93,7 @@ def reduce_xray(f, bkg=None, scale=None, sample_length=None):
     if scale is None:
         # no scale factor was specifed, so normalise by highest intensity point
         # below Qc for Silicon at 8.048 keV
-        below_qc = qz[qz < 0.0318]
+        below_qc = qz[qz > 0.0318]
         if len(below_qc):
             scale = np.max(reflectivity[qz > 0.0318])
 
