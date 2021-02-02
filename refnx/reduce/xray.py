@@ -93,9 +93,9 @@ def reduce_xray(f, bkg=None, scale=None, sample_length=None, throwaway=0):
     if scale is None:
         # no scale factor was specifed, so normalise by highest intensity point
         # below Qc for Silicon at 8.048 keV
-        below_qc = qz[qz > 0.0318]
+        below_qc = qz[qz < 0.0318]
         if len(below_qc):
-            scale = np.max(reflectivity[qz > 0.0318])
+            scale = np.max(reflectivity[qz < 0.0318])
 
     reflectivity /= scale
     reflectivity_s /= scale
