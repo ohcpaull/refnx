@@ -37,14 +37,15 @@ def reduce_xray(f, bkg=None, scale=None, sample_length=None, throwaway=0):
     dataset: refnx.dataset.ReflectDataset
         The specular reflectivity as a function of momentum transfer, Q.
     """
-    if f.endswith('.xrdml'):
+    if f.endswith(".xrdml"):
         spec = parse_xrdml_file(f)
-    elif f.endswith('.ras'):
+    elif f.endswith(".ras"):
         spec = parse_ras_file(f)
 
-    reflectivity = (spec["intensities"][throwaway:]+1) / spec["count_time"]
-    reflectivity_s = np.sqrt(spec["intensities"][throwaway:]) / spec["count_time"]
-
+    reflectivity = (spec["intensities"][throwaway:] + 1) / spec["count_time"]
+    reflectivity_s = (
+        np.sqrt(spec["intensities"][throwaway:]) / spec["count_time"]
+    )
 
     # do the background subtraction
     if bkg is not None:
@@ -66,7 +67,10 @@ def reduce_xray(f, bkg=None, scale=None, sample_length=None, throwaway=0):
         total_bkgd_s = np.sqrt(1 / denominator)
 
         reflectivity, reflectivity_s = EP.EPsub(
-            reflectivity[throwaway:], reflectivity_s[throwaway:], total_bkgd, total_bkgd_s
+            reflectivity[throwaway:],
+            reflectivity_s[throwaway:],
+            total_bkgd,
+            total_bkgd_s,
         )
 
     # work out the Q values
@@ -107,7 +111,8 @@ def reduce_xray(f, bkg=None, scale=None, sample_length=None, throwaway=0):
 
 def parse_ras_file(f):
     """
-    Parses a RAS file
+    Parses a RAS file. Adapted from xrayutilities
+    (see https://xrayutilities.sourceforge.io/)
 
     Parameters
     ----------
@@ -201,10 +206,10 @@ def parse_ras_file(f):
             init_mopo[keys[k]] = position[k]
         fid.seek(offset)
 
-    d["intensities"] = data["int"]*data["att"]
+    d["intensities"] = data["int"] * data["att"]
     d["twotheta"] = data["TwoThetaOmega"]
-    d["omega"] = [angle/2 for angle in data["TwoThetaOmega"]]
-    d["count_time"] = (1/meas_speed) * meas_step
+    d["omega"] = data["TwoThetaOmega"] / 2
+    d["count_time"] = (1 / meas_speed) * meas_step
     d["wavelength"] = float(wavelength)
 
     return d
