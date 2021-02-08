@@ -147,3 +147,58 @@ class ReflectDataset(Data1D):
             self.data = (qvals, rvals, drvals, dqvals)
         except ET.ParseError:
             super(ReflectDataset, self).load(fname)
+
+
+def simulreflec_format(ref1, ref2, data_folder=None):
+    """
+    Function that converts individual .dat files to simulreflec format
+    
+    Parameters
+    ----------
+    ref1 : Data1D or str
+        This is the R++ reflectivity file
+    
+    ref2 : Data1D or str
+        This is the R-- reflectivity file
+    
+    Returns
+    -------
+    valid : bool
+        If the input files are valid, then will write file and return 
+        True, and vice versa. 
+    """
+    if all(isinstance(d, Data1D) for d in [ref1, ref2]):
+        data1 = ref1
+        data2 = ref2
+
+    elif all(type(d) is str for d in [ref1, ref2]):
+        data1 = Data1D(os.path.join(data_folder, ref1))
+        data2 = Data1D(os.path.join(data_folder, ref2))
+    else:
+        raise ValueError("Input should either be Data1D or string of reduced .dat file")
+        return False
+           
+    # Convert Q data from inverse Angstroms to inverse nanometres
+    x = data1.x * 10
+    y1 = data1.y
+    y2 = data2.y
+    data = np.array([x, y1, y2])
+    
+    fname = str(data1.name + "_" + data2.name + ".txt")
+    
+    with open(fname, 'w') as f:
+        comment = "# Comment = {}_{}\n".format(data1.name, data2.name)
+        radiation = "# Particles = neutrons\n"
+        polarisation = "# Polarisation = polarised\n"
+        Qvals = "# Abscisses = nm-1\n"
+        tof = "# TimeOfFlight = False\n"
+        f.write(comment)
+        f.write(radiation)
+        f.write(polarisation)
+        f.write(Qvals)
+        f.write(tof)
+        np.savetxt(f, data.T, delimiter="\t")
+        
+    return True
+
+    
