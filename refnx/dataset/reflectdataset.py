@@ -151,24 +151,23 @@ class ReflectDataset(Data1D):
 
 def simulreflec_format(ref1, ref2, data_folder=None):
     """
-    Function that converts individual .dat files to simulreflec format. 
+    Function that converts individual .dat files to simulreflec format.
     For R++ and R--, produces a .txt file with 5 columns corresponding
     to Q, R++, R++_err, R--, R--_err. See the simulreflec documentation at
     `http://www-llb.cea.fr/prism/programs/simulreflec/simulreflec.html`
-    
+
     Parameters
     ----------
     ref1 : Data1D or str
         This is the R++ reflectivity file
-    
     ref2 : Data1D or str
         This is the R-- reflectivity file
-    
+
     Returns
     -------
     valid : bool
-        If the input files are valid, then will write file and return 
-        True, and vice versa. 
+        If the input files are valid, then will write file and return
+        True, otherwise returns ValueError.
     """
     if all(isinstance(d, Data1D) for d in [ref1, ref2]):
         data1 = ref1
@@ -178,9 +177,10 @@ def simulreflec_format(ref1, ref2, data_folder=None):
         data1 = Data1D(os.path.join(data_folder, ref1))
         data2 = Data1D(os.path.join(data_folder, ref2))
     else:
-        raise ValueError("Input should either be Data1D or string of reduced .dat file")
-        return False
-           
+        raise ValueError(
+            "Input should either be Data1D or string of reduced .dat file"
+        )
+
     # Convert Q data from inverse Angstroms to inverse nanometres
     x = data1.x * 10
     y1 = data1.y
@@ -188,10 +188,10 @@ def simulreflec_format(ref1, ref2, data_folder=None):
     y2 = data2.y
     y2_err = data2.y_err
     data = np.array([x, y1, y1_err, y2, y2_err])
-    
+
     fname = str(data1.name + "_" + data2.name + ".txt")
-    
-    with open(fname, 'w') as f:
+
+    with open(fname, "w") as f:
         comment = "# Comment = {}_{}\n".format(data1.name, data2.name)
         radiation = "# Particles = neutrons\n"
         polarisation = "# Polarisation = polarised\n"
@@ -203,7 +203,5 @@ def simulreflec_format(ref1, ref2, data_folder=None):
         f.write(Qvals)
         f.write(tof)
         np.savetxt(f, data.T, delimiter="\t")
-        
-    return True
 
-    
+    return True
