@@ -151,7 +151,10 @@ class ReflectDataset(Data1D):
 
 def simulreflec_format(ref1, ref2, data_folder=None):
     """
-    Function that converts individual .dat files to simulreflec format
+    Function that converts individual .dat files to simulreflec format. 
+    For R++ and R--, produces a .txt file with 5 columns corresponding
+    to Q, R++, R++_err, R--, R--_err. See the simulreflec documentation at
+    `http://www-llb.cea.fr/prism/programs/simulreflec/simulreflec.html`
     
     Parameters
     ----------
@@ -181,8 +184,10 @@ def simulreflec_format(ref1, ref2, data_folder=None):
     # Convert Q data from inverse Angstroms to inverse nanometres
     x = data1.x * 10
     y1 = data1.y
+    y1_err = data1.y_err
     y2 = data2.y
-    data = np.array([x, y1, y2])
+    y2_err = data2.y_err
+    data = np.array([x, y1, y1_err, y2, y2_err])
     
     fname = str(data1.name + "_" + data2.name + ".txt")
     
