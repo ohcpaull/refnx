@@ -167,7 +167,7 @@ def simulreflec_format(ref1, ref2, data_folder=None):
     -------
     valid : bool
         If the input files are valid, then will write file and return
-        True, otherwise returns ValueError.
+        True, otherwise returns False.
     """
     if all(isinstance(d, Data1D) for d in [ref1, ref2]):
         data1 = ref1
@@ -190,18 +190,21 @@ def simulreflec_format(ref1, ref2, data_folder=None):
     data = np.array([x, y1, y1_err, y2, y2_err])
 
     fname = str(data1.name + "_" + data2.name + ".txt")
-
-    with open(fname, "w") as f:
-        comment = "# Comment = {}_{}\n".format(data1.name, data2.name)
-        radiation = "# Particles = neutrons\n"
-        polarisation = "# Polarisation = polarised\n"
-        Qvals = "# Abscisses = nm-1\n"
-        tof = "# TimeOfFlight = False\n"
-        f.write(comment)
-        f.write(radiation)
-        f.write(polarisation)
-        f.write(Qvals)
-        f.write(tof)
-        np.savetxt(f, data.T, delimiter="\t")
-
-    return True
+    try:
+        with open(fname, "w") as f:
+            comment = "# Comment = {}_{}\n".format(data1.name, data2.name)
+            radiation = "# Particles = neutrons\n"
+            polarisation = "# Polarisation = polarised\n"
+            Qvals = "# Abscisses = nm-1\n"
+            tof = "# TimeOfFlight = False\n"
+            f.write(comment)
+            f.write(radiation)
+            f.write(polarisation)
+            f.write(Qvals)
+            f.write(tof)
+            np.savetxt(f, data.T, delimiter="\t")
+        return True
+    except:
+        print("File writing did not complete successfully.")
+        return False
+    
