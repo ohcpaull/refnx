@@ -204,7 +204,6 @@ def simulreflec_format(ref1, ref2, data_folder=None):
             f.write(tof)
             np.savetxt(f, data.T, delimiter="\t")
         return True
-    except:
+    except ValueError:
         print("File writing did not complete successfully.")
         return False
-    
